@@ -1,0 +1,16 @@
+/* pages/add/index.wxss */
+
+.container {
+    padding: 20rpx;
+}
+
+.container input {
+    border-bottom: solid 1rpx #bbb;
+    margin-top: 20rpx;
+    display: block;
+    width: 100%;
+}
+.container button {
+    margin-top: 20rpx;
+    width: 50%;
+}

@@ -1,0 +1,8 @@
+<!--pages/add/index.wxml-->
+<view class="container">
+    <input type="text" model:value="{{ name }}" bindinput="inputchange" placeholder="输入WiFi名称" />
+    <input type="text" password model:value="{{ password }}" bindinput="inputchange" placeholder="输入WiFi密码" />
+
+    <button type="primary" wx:if="{{ !id }}" bindtap="add" size="mini">新增WiFi</button>
+    <button type="primary" wx:else bindtap="edit" size="mini">修改WiFi密码</button>
+</view>
