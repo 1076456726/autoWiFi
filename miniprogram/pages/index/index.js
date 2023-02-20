@@ -8,49 +8,7 @@ Page({
     data: {
         list: [],
         name: "",
-        password: "",
-        openid: ""
-    },
-
-    // 获取openid
-    getOpenid: function () {
-        // 清空数据
-        let empty = callback => {
-            db.collection('op').where({
-                type: "获取openid用"
-            }).remove({
-                success: function(res) {
-                    callback()
-                }
-            })
-        }
-        // 添加一条数据
-        let addData = callback => {
-            db.collection('op').add({
-                data: {
-                    type: '获取openid用',
-                    time: new Date()
-                }
-            }).then(res => {
-                callback()
-            })
-        }
-        // 查询添加的数据，不出意外数据只有一条，那条数据携带openid即当前帐号openid
-        let getData = callback => {
-            db.collection('op').get().then(res => {
-                callback(res.data)
-            })
-        }
-        empty(() => {
-            addData(() => {
-                getData(res => {
-                    let data = res[0]
-                    this.setData({
-                        openid: data._openid
-                    })
-                })
-            })
-        })
+        password: ""
     },
 
     // 新增wifi
@@ -100,7 +58,6 @@ Page({
             // _openid: 'oQZL60LnIswG1qAsi5PcTfWJkbxg'
         }
         db.collection('wifi').where(params).get().then(res => {
-            console.log(res.data)
             this.setData({
                 list: res.data
             })
@@ -124,62 +81,112 @@ Page({
         })
 
         if (!isConnect) {
-            wx.showToast({
-                title: "连接中...",
-                icon: "loading",
-                mask: true
-            })
-
-            let i = 0, ok = false, max = this.data.list.length
-            let connect = () => {
-                let el = this.data.list[i]
-                console.log(i)
-                wx.connectWifi({
-                    SSID: el.name,
-                    password: el.password,
-                    success: res => {
-                        wx.showToast({
-                            title: "连接成功!",
-                            icon: "success",
-                            mask: true
+            wx.startWifi({
+                success: s => {
+                    wx.showToast({
+                        title: "连接中...",
+                        icon: "loading",
+                        mask: true
+                    })
+        
+                    let i = 0, ok = false, max = this.data.list.length
+                    let connect = () => {
+                        let el = this.data.list[i]
+                        wx.connectWifi({
+                            SSID: el.name,
+                            password: el.password,
+                            success: res => {
+                                wx.showToast({
+                                    title: "连接成功!",
+                                    icon: "success",
+                                    mask: true
+                                })
+                            },
+                            fail: error => {
+                                if (i === max - 1) {
+                                    wx.showToast({
+                                        title: "连接失败!",
+                                        icon: "error",
+                                        mask: true
+                                    })
+                                } else {
+                                    i++
+                                    connect()
+                                }
+                            }
                         })
-                    },
-                    fail: error => {
-                        if (i === max - 1) {
+                    }
+                    connect()
+                },
+                fail: error => {
+                    wx.showToast({
+                        title: "wifi初始化失败",
+                        icon: "error",
+                        mask: true
+                    }) 
+                }
+            })
+            
+        }
+    },
+    // 连接单个wifi
+    connectOne: function (options) {
+        let isConnect = false // 是否已连接wifi
+        wx.getConnectedWifi({
+            success: res => {
+                isConnect = true
+                wx.showToast({
+                    title: "已连接WIFI!",
+                    mask: true
+                })
+            },
+            fail: error => {
+                isConnect = false
+            }
+        })
+
+        if (!isConnect) {
+            let id = options.target.dataset.id
+            wx.startWifi({
+                success: res => {
+                    wx.showToast({
+                        title: "连接中...",
+                        icon: "loading",
+                        mask: true
+                    })
+                    let el = this.data.list.filter(el => el._id === id)[0]
+                    wx.connectWifi({
+                        SSID: el.name,
+                        password: el.password,
+                        success: res => {
+                            wx.showToast({
+                                title: "连接成功!",
+                                icon: "success",
+                                mask: true
+                            })
+                        },
+                        fail: error => {
                             wx.showToast({
                                 title: "连接失败!",
                                 icon: "error",
                                 mask: true
                             })
-                        } else {
-                            i++
-                            connect()
                         }
-                    }
-                })
-            }
-            connect()
+                    })
+                },
+                fail: error => {
+                    wx.showToast({
+                        title: "wifi初始化失败",
+                        icon: "error",
+                        mask: true
+                    })           
+                }
+            })
         }
     },
 
-    // 初始化wifi
-    init: function () {
-        wx.startWifi({
-            success: res => {
-                this.connect()
-            },
-            fail: error => {
-                wx.showToast({
-                    title: "wifi初始化失败",
-                    icon: "error",
-                    mask: true
-                })           
-            }
-        })
-    },
-
     onLoad: function () {
-        this.getOpenid()
+        
     },
     onShow: function () {
         this.getList()

@@ -33,7 +33,7 @@ page {
     flex: 1;
 }
 .list .item .btn {
-    width: 240rpx;
+    width: 340rpx;
     display: flex;
     justify-content: center;
 }
