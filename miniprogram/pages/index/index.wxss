@@ -37,6 +37,12 @@ page {
     display: flex;
     justify-content: center;
 }
+.list .item .btn button {
+    font-size: 28rpx;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 .list .item.head {
     font-weight: bold;
 }

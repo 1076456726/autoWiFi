@@ -8,13 +8,15 @@ Page({
     data: {
         list: [],
         name: "",
-        password: ""
+        password: "",
+        openId: '',
+        load: false
     },
 
     // 新增wifi
     dbadd: function () {
         wx.navigateTo({
-            url: '/pages/add/index',
+            url: '/pages/add/index?openid='+this.data.openId,
         })
     },
     edit: function (options) {
@@ -59,13 +61,20 @@ Page({
         }
         db.collection('wifi').where(params).get().then(res => {
             this.setData({
-                list: res.data
+                list: res.data,
+                load: true
             })
         })
     },
 
     // 连接wifi
     connect: function () {
+        if (!this.data.load || !this.data.list.length) {
+            setTimeout(() => {
+                this.connect()
+            }, 200)
+            return
+        }
         let isConnect = false // 是否已连接wifi
         wx.getConnectedWifi({
             success: res => {
@@ -81,20 +90,14 @@ Page({
         })
 
         if (!isConnect) {
-            wx.startWifi({
-                success: s => {
-                    wx.showToast({
-                        title: "连接中...",
-                        icon: "loading",
-                        mask: true
-                    })
-        
-                    let i = 0, ok = false, max = this.data.list.length
-                    let connect = () => {
-                        let el = this.data.list[i]
-                        wx.connectWifi({
-                            SSID: el.name,
-                            password: el.password,
+            let i = 0, ok = false, max = this.data.list.length
+            let connect = () => {
+                let el = this.data.list[i]
+                wx.connectWifi({
+                    SSID: el.name,
+                    password: el.password,
+                    success: res => {
+                        wx.getConnectedWifi({
                             success: res => {
                                 wx.showToast({
                                     title: "连接成功!",
@@ -103,19 +106,34 @@ Page({
                                 })
                             },
                             fail: error => {
-                                if (i === max - 1) {
-                                    wx.showToast({
-                                        title: "连接失败!",
-                                        icon: "error",
-                                        mask: true
-                                    })
-                                } else {
-                                    i++
-                                    connect()
-                                }
+                                errorfn()
                             }
                         })
+                    },
+                    fail: error => {
+                        errorfn()
                     }
+                })
+            }
+            let errorfn = () => {
+                if (i === max - 1) {
+                    wx.showToast({
+                        title: "连接失败!",
+                        icon: "error",
+                        mask: true
+                    })
+                } else {
+                    i++
+                    connect()
+                }
+            }
+            wx.startWifi({
+                success: s => {
+                    wx.showToast({
+                        title: "连接中...",
+                        icon: "loading",
+                        mask: true
+                    })
                     connect()
                 },
                 fail: error => {
@@ -185,8 +203,30 @@ Page({
         }
     },
 
+    // 获取openid
+    getOpenId: function () {
+        wx.cloud.callFunction({
+            name: 'quickstartFunctions',
+            config: {},
+            data: {
+                type: 'getOpenId'
+            }
+        }).then((resp) => {
+            this.setData({
+                openId: resp.result.userInfo.openId
+            })
+        }).catch((e) => {
+            wx.showToast({
+                title: "获取openid失败！",
+                icon: "error",
+                mask: true
+            })
+        })
+    },
+
     onLoad: function () {
-        
+        this.getOpenId()
+        this.connect()
     },
     onShow: function () {
         this.getList()

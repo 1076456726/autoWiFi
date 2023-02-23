@@ -20,10 +20,12 @@ Page({
      */
     onLoad(options) {
         this.getList()
+        this.setData({
+            openid: options.openid
+        })
         if (options.id) {
             this.setData({
                 id: options.id,
-                openid: options.openid,
                 name: options.name,
                 password: options.password
             })
@@ -53,7 +55,7 @@ Page({
             })
             return
         }
-
+        console.log(this.data)
         db.collection('wifi').add({
             data: {
                 name: this.data.name,
@@ -63,12 +65,19 @@ Page({
                 wx.showToast({
                     title: "创建成功",
                     mask: true,
-                    mode: 'success',
+                    icon: 'success',
                     success: () => {
                         setTimeout(() => {
                             wx.navigateBack()
                         }, 1500)
                     }
+                })
+            },
+            fail: er => {
+                wx.showToast({
+                    title: "创建失败",
+                    mask: true,
+                    icon: 'error'
                 })
             }
         })
@@ -123,7 +132,6 @@ Page({
             // _openid: 'oQZL60LnIswG1qAsi5PcTfWJkbxg'
         }
         db.collection('wifi').where(params).get().then(res => {
-            console.log(res.data)
             this.setData({
                 list: res.data
             })

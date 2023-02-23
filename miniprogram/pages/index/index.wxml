@@ -11,12 +11,13 @@
             <view class="name">WiFi名称</view>
             <view class="btn">操作</view>
         </view>
+        
         <view class="item" wx:for="{{ list }}" wx:key="_id">
             <view class="name">{{ item.name }}</view>
             <view class="btn">
                 <button type="default" size="mini" bindtap="connectOne" data-id="{{ item._id }}">连接</button>
-                <button type="default" size="mini" bindtap="edit" data-id="{{ item._id }}">编辑</button>
-                <button type="warn" size="mini" bindtap="remove" data-id="{{ item._id }}">删除</button>
+                <button type="default" size="mini" wx:if="{{ openId === item._openid }}" bindtap="edit" data-id="{{ item._id }}">编辑</button>
+                <button type="warn" size="mini" wx:if="{{ openId === item._openid }}" bindtap="remove" data-id="{{ item._id }}">删除</button>
             </view>
         </view>
     </view>
